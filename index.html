@@ -66,6 +66,64 @@ input,select,textarea{width:100%;font:inherit;padding:10px 12px;border-radius:9p
 footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mut);font-size:14px}
 @media(max-width:820px){.hero,.about{grid-template-columns:1fr}nav{display:none}form{grid-template-columns:1fr}.hero{padding-top:32px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* motion */
+body,header{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s}
+header.sc{box-shadow:0 6px 24px rgba(10,30,50,.12)}
+.hero>div:first-child>*{animation:up .8s cubic-bezier(.2,.7,.2,1) both}
+.hero>div:first-child>*:nth-child(2){animation-delay:.12s}
+.hero>div:first-child>*:nth-child(3){animation-delay:.24s}
+.funnel{animation:up .9s .2s cubic-bezier(.2,.7,.2,1) both}
+.f i{animation:grow 1.3s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*.18s + .5s)}
+.f.leak i{animation:grow 1.3s cubic-bezier(.2,.7,.2,1) both .86s,pulse 2.4s 2.4s infinite}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes grow{from{width:0}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,138,20,.5)}70%{box-shadow:0 0 0 9px rgba(217,138,20,0)}}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+.card{transition:box-shadow .25s,border-color .25s}
+.card:hover,.card.rv.in:hover{transform:translateY(-5px);box-shadow:0 14px 32px rgba(10,30,50,.14);border-color:var(--ac)}
+.card.rv.in.rd{transition:transform .25s,box-shadow .25s,border-color .25s}
+.btn{transition:transform .2s,box-shadow .2s,opacity .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(14,124,134,.35)}
+.btn:active{transform:none}
+.slots button{transition:background-color .2s,transform .15s}
+.slots button:hover{transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){.hero>div:first-child>*,.funnel,.f i,.f.leak i{animation:none}.rv{opacity:1;transform:none;transition:none}.card,.btn{transition:none}.card:hover,.btn:hover{transform:none}}
+
+/* more motion */
+main{position:relative}
+.orbs{position:absolute;inset:0 0 auto 0;height:760px;overflow:hidden;z-index:-1;pointer-events:none}
+.orbs i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.26}
+.orbs i:nth-child(1){width:360px;height:360px;background:var(--ac);top:-60px;inset-inline-start:-80px;animation:fl1 14s ease-in-out infinite alternate}
+.orbs i:nth-child(2){width:300px;height:300px;background:var(--hot);top:140px;inset-inline-end:-60px;animation:fl2 17s ease-in-out infinite alternate}
+@keyframes fl1{to{transform:translate(140px,90px) scale(1.2)}}
+@keyframes fl2{to{transform:translate(-120px,-70px) scale(1.15)}}
+#pg{position:absolute;bottom:-1px;inset-inline-start:0;height:3px;width:0;background:linear-gradient(90deg,var(--ac),var(--hot))}
+.hero>div:first-child>h1{background:linear-gradient(90deg,var(--fg) 0%,var(--ac) 40%,var(--hot) 55%,var(--fg) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:up .8s cubic-bezier(.2,.7,.2,1) both,sheen 8s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+.logo::before{animation:dot 2.4s infinite}
+@keyframes dot{0%,100%{box-shadow:0 0 0 3px var(--ac),0 0 0 3px rgba(14,124,134,.5)}70%{box-shadow:0 0 0 3px var(--ac),0 0 0 13px rgba(14,124,134,0)}}
+.mq{overflow:hidden;border-block:1px solid var(--line);background:var(--card);direction:ltr;padding:14px 0}
+.mt{display:flex;width:max-content;animation:mq 30s linear infinite}
+.mq:hover .mt{animation-play-state:paused}
+.mt div{display:flex;gap:36px;padding-inline-end:36px;font-weight:800;font-size:20px;white-space:nowrap;color:var(--mut)}
+.mt b{color:var(--hot);font-weight:400}
+@keyframes mq{to{transform:translateX(-50%)}}
+h2::after{content:"";display:block;height:4px;width:0;border-radius:2px;background:linear-gradient(90deg,var(--ac),var(--hot));margin-top:8px;transition:width .9s .3s}
+h2.in::after{width:64px}
+.btn{position:relative;overflow:hidden}
+.btn:not(.alt)::after{content:"";position:absolute;top:0;inset-inline-start:-80%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:shine 3.8s 2s infinite}
+@keyframes shine{0%,60%{inset-inline-start:-80%}100%{inset-inline-start:140%}}
+.card.pk.top{border:2px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(120deg,var(--ac),var(--hot),var(--ac)) border-box;background-size:auto,300% 100%;animation:bd 5s linear infinite}
+@keyframes bd{from{background-position:0 0,0 0}to{background-position:0 0,-150% 0}}
+.card.pk.top.rv.in:hover,.card.pk.top:hover{border-color:transparent}
+.wa{position:fixed;inset-inline-end:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:#25d366;display:grid;place-items:center;z-index:6;box-shadow:0 8px 22px rgba(0,0,0,.28);animation:pop .7s 1.6s cubic-bezier(.3,1.6,.5,1) both}
+.wa::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid #25d366;animation:ring 2.2s 2.4s infinite}
+.wa svg{width:30px;height:30px;fill:#fff}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
+@media(prefers-reduced-motion:reduce){.orbs i,.mt,.btn::after,.wa,.wa::after,.logo::before,.card.pk.top{animation:none}.hero>div:first-child>h1{animation:none}h2::after{width:64px;transition:none}}
 </style>
 </head>
 <body>
@@ -73,9 +131,10 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mut);font-siz
 <a class="logo" href="#top" data-i18n="brand"></a>
 <nav><a href="#services" data-i18n="n1"></a><a href="#packages" data-i18n="n2"></a><a href="#about" data-i18n="n3"></a><a href="#book" data-i18n="n4"></a></nav>
 <div class="tools"><button id="lang" aria-label="Language"></button><button id="theme" aria-label="Theme"></button></div>
-</div></header>
+</div><div id="pg"></div></header>
 
 <main id="top">
+<div class="orbs" aria-hidden="true"><i></i><i></i></div>
 <div class="wrap hero">
 <div>
 <h1 data-i18n="h1"></h1>
@@ -90,6 +149,8 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mut);font-siz
 <div class="f" style="--w:8%"><span data-i18n="f4"></span><i></i></div>
 </div>
 </div>
+
+<div class="mq" aria-hidden="true"><div class="mt"><div><span>Meta Ads</span><b>✦</b><span>TikTok Ads</span><b>✦</b><span>Google Ads</span><b>✦</b><span>SEO</span><b>✦</b><span>Funnel Analysis</span><b>✦</b><span>ROI Tracking</span><b>✦</b><span>Social Media</span><b>✦</b><span>Customer Experience</span><b>✦</b></div><div><span>Meta Ads</span><b>✦</b><span>TikTok Ads</span><b>✦</b><span>Google Ads</span><b>✦</b><span>SEO</span><b>✦</b><span>Funnel Analysis</span><b>✦</b><span>ROI Tracking</span><b>✦</b><span>Social Media</span><b>✦</b><span>Customer Experience</span><b>✦</b></div></div></div>
 
 <section id="services"><div class="wrap">
 <h2 data-i18n="sh"></h2><p class="sub" data-i18n="ss"></p>
@@ -131,6 +192,7 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mut);font-siz
 </form>
 </div></section>
 </main>
+<a class="wa" href="https://wa.me/201101632040" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg></a>
 <footer><div class="wrap">© <span id="yr"></span> Ribh · Cairo, Egypt</div></footer>
 
 <script>
@@ -156,7 +218,7 @@ a2f:["إدارة حملات على منصة واحدة (ميتا أو تيك ت�
 a3:"نمو",a3d:"الأنسب لمعظم المحلات والشركات الصغيرة.",
 a3f:["إعلانات على منصتين", "إدارة السوشيال ميديا (12 بوست في الشهر)", "تقرير أسبوعي ولوحة متابعة", "تحليل المشاكل وتوصيات للتحسين", "أساسيات SEO للموقع"],
 a4:"توسع",a4d:"للشركات اللي عايزة فريق نمو كامل.",
-a4f:["إعلانات على ميتا وتيك توك وجوجل", "إدارة سوشيال ميديا (20 بوست في الشهر)", "SEO مستمر للموقع", "تدريب فريق خدمة العملاء (جلستين في الشهر)", "تقرير ROI شهري واجتماع استراتيجية"],
+a4f:["إعلانات على ميتا وتيك توك وجوجل", "إدارة سوشيال ميديا (20 بوست في الشهر)", "SEO مستمر للموقع", "موقع لشغلك بصفحات لعرض منتجاتك (لحد 5 صفحات)", "تدريب فريق خدمة العملاء (جلستين في الشهر)", "تقرير ROI شهري واجتماع استراتيجية"],
 ah:"مين إحنا",ap1:"ربح وكالة ميديا باينج ونمو في القاهرة، اتبنت على خبرة أكتر من 6 سنين في خدمة العملاء والدعم الفني مع عملاء دوليين، منها سنتين ونص في عمليات شركة فينتك. عشان كده عارفين العميل بيفكر إزاي، وإيه اللي بيضايقه ويوقّع مبيعاتك. وبنشتغل معاك إيد واحدة عشان نكبّر ظهورك، ونزوّد مبيعاتك وإيراداتك، ونبني لاسمك مكان قوي في السوق.",
 ap2:"شغلنا ماشي بمنهج العمليات: متابعة وتحليل وبعدين حل. بنقرا مؤشرات الإعلان (CTR وCPC وCPA وROAS) بنفس العقلية، وخلّصنا برنامج تدريب في إعلانات ميتا. عشان كده بنشوف المشكلة حتى لو مش في الإعلان نفسه.",
 st1:"سنين خبرة في خدمة العملاء والعمليات",st2:"سنة خبرة في الفينتك",st3:"أسواق غطّتها خبرتنا في العمليات",st4:"لغتين: عربي وإنجليزي",
@@ -186,7 +248,7 @@ a2f:["Campaign management on one platform (Meta, TikTok or Google)","Tracking se
 a3:"Growth",a3d:"The best fit for most shops and small companies.",
 a3f:["Ads on two platforms","Social media management (12 posts a month)","Weekly report and dashboard","Problem analysis and improvement advice","Website SEO basics"],
 a4:"Scale",a4d:"For companies that want a full growth function.",
-a4f:["Ads on Meta, TikTok and Google","Social media management (20 posts a month)","Ongoing website SEO","Customer service team training (2 sessions a month)","Monthly ROI report and strategy meeting"],
+a4f:["Ads on Meta, TikTok and Google", "Social media management (20 posts a month)", "Ongoing website SEO", "Business website with product showcase pages (up to 5 pages)", "Customer service team training (2 sessions a month)", "Monthly ROI report and strategy meeting"],
 ah:"About us",ap1:"Ribh is a media buying and growth agency in Cairo, built on 6+ years of customer and technical support experience with international clients, including 2.5 years in fintech operations. That is why we know exactly how your customers think, and what frustrates them and sends your sales down. We work side by side with you to grow your visibility, lift your sales and revenue, and build a name that stands out in the market.",
 ap2:"We work the way operations teams do: monitor, analyze, fix. We read ad metrics (CTR, CPC, CPA, ROAS) with that mindset, and we completed a Meta Ads media buying program. That lets us spot a problem even when it is not in the ad itself.",
 st1:"years of experience in support and operations",st2:"years of fintech experience",st3:"markets covered by our operations experience",st4:"languages: Arabic and English",
@@ -235,9 +297,46 @@ document.getElementById("f").onsubmit=function(e){e.preventDefault();var b=build
 document.getElementById("mail").onclick=function(e){e.preventDefault();var b=build();if(b)window.open("mailto:"+EMAIL+"?subject="+encodeURIComponent(t("brand"))+"&body="+encodeURIComponent(b))};
 var d=document.getElementById("date");d.min=new Date().toISOString().slice(0,10);
 document.getElementById("yr").textContent=new Date().getFullYear();
+var nl=((navigator.languages&&navigator.languages[0])||navigator.language||"ar").toLowerCase();L=nl.indexOf("ar")===0?"ar":"en";
 var sl=ld("lang");if(sl==="en"||sl==="ar")L=sl;
 var st=ld("theme");if(st==="dark"||st==="light")root.setAttribute("data-theme",st);
 render();
+
+(function(){
+ var rm=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var hd=document.querySelector("header");
+ function sc(){hd.classList.toggle("sc",window.scrollY>8)}
+ addEventListener("scroll",sc,{passive:true});sc();
+ document.querySelectorAll(".f").forEach(function(e,i){e.style.setProperty("--i",i)});
+ if(rm||!("IntersectionObserver" in window))return;
+ var els=document.querySelectorAll("section h2,.sub,.card,.stats div,.about>div:first-child p,form>*,.note");
+ var io=new IntersectionObserver(function(en){en.forEach(function(x){
+  if(!x.isIntersecting)return;var e=x.target;io.unobserve(e);
+  e.classList.add("in");
+  var b=e.querySelector&&e.querySelector(".stats b");if(e.parentNode&&e.parentNode.classList.contains("stats"))count(e.querySelector("b"));
+  setTimeout(function(){e.style.setProperty("--d","0s");e.classList.add("rd")},1400);
+ })},{threshold:.15,rootMargin:"0px 0px -40px 0px"});
+ els.forEach(function(e,i){
+  var sib=Array.prototype.indexOf.call(e.parentNode.children,e);
+  e.style.setProperty("--d",(Math.min(sib,5)*0.09)+"s");
+  e.classList.add("rv");io.observe(e);
+ });
+ function count(b){
+  var t=b.textContent,n=parseFloat(t),sfx=t.replace(/[0-9.]/g,""),dec=(t.indexOf(".")>-1)?1:0,t0=null;
+  if(isNaN(n))return;
+  function step(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/1100,1),v=n*(1-Math.pow(1-p,3));b.textContent=v.toFixed(dec)+sfx;if(p<1)requestAnimationFrame(step);else b.textContent=t}
+  requestAnimationFrame(step);
+ }
+})();
+
+(function(){
+ var pg=document.getElementById("pg");
+ function p(){var h=document.documentElement.scrollHeight-innerHeight;pg.style.width=(h>0?Math.min(scrollY/h*100,100):0)+"%"}
+ addEventListener("scroll",p,{passive:true});p();
+ if(matchMedia("(prefers-reduced-motion:reduce)").matches||!matchMedia("(hover:hover) and (pointer:fine)").matches)return;
+ document.addEventListener("pointermove",function(e){var c=e.target.closest&&e.target.closest(".card");if(!c)return;var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transition="transform .12s";c.style.transform="perspective(700px) rotateX("+(-y*7).toFixed(2)+"deg) rotateY("+(x*7).toFixed(2)+"deg) translateY(-5px)"});
+ document.addEventListener("pointerout",function(e){var c=e.target.closest&&e.target.closest(".card");if(c&&!c.contains(e.relatedTarget)){c.style.transition="";c.style.transform=""}});
+})();
 </script>
 </body>
 </html>
