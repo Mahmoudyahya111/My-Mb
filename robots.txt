@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /funnel.html
 Sitemap: https://mahmoudyahya111.github.io/My-Mb/sitemap.xml

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Funnel Check</title>
+<style>body{font-family:system-ui,sans-serif;background:#0e1923;color:#e8eef3;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:16px}a{color:#f2b04a}</style></head>
+<body><div><p id="m">Loading...</p><p><a href="admin.html">Go to admin sign in</a></p></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+var C=window.RIBH||{},m=document.getElementById("m");
+if(!C.url||!C.key){m.textContent="Missing Supabase settings in config.js."}
+else{var sb=supabase.createClient(C.url,C.key);
+sb.auth.getSession().then(function(r){if(!r.data.session){m.textContent="Please sign in on the admin page first.";return}
+ return sb.from("private_pages").select("html").eq("name","funnel-check").maybeSingle().then(function(x){
+  if(x.data&&x.data.html){document.open();document.write(x.data.html);document.close()}
+  else m.textContent="No access, or Funnel Check has not been uploaded yet."})})}
+</script></body></html>
