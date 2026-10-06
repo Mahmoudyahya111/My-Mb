@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Ribh Admin</title>
+<link rel="icon" href="favicon.svg">
+<style>
+:root{--bg:#f3f6f8;--fg:#12263a;--mut:#53677a;--card:#fff;--line:#d5dee6;--ac:#0e7c86;--hot:#d98a14}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1923;--fg:#e8eef3;--mut:#9db0bf;--card:#162634;--line:#2a3d4d;--ac:#3cc2cd;--hot:#f2b04a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,Segoe UI,Tahoma,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+h1{font-size:22px;margin:0}h2{font-size:18px;margin:20px 0 8px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+button,input,select,textarea{font:inherit;border-radius:8px;border:1px solid var(--line);padding:8px 12px;background:var(--card);color:var(--fg)}
+button{cursor:pointer}button.p,.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}.c b{display:block;font-size:30px;color:var(--ac)}
+.bar{height:10px;border-radius:5px;background:var(--hot);margin-top:4px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:start;font-size:14px}
+.tw{overflow-x:auto}form.g{display:grid;grid-template-columns:1fr 1fr;gap:8px}form.g .f{grid-column:1/-1}
+iframe{width:100%;height:80vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+.m{color:var(--mut);font-size:14px}[hidden]{display:none!important}
+@media(max-width:600px){form.g{grid-template-columns:1fr}}
+</style>
+</head>
+<body><div class="w">
+<header><h1>Ribh Admin</h1><div><span class="m" id="who"></span> <button id="out" hidden>Sign out</button></div></header>
+<div id="login"><p>Sign in with your email. We will send you a one-time link.</p><input id="em" type="email" placeholder="you@email.com"> <button class="p" id="go">Send link</button><p class="m" id="msg"></p></div>
+<div id="app" hidden>
+<div class="tabs" id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="bk">Bookings</button><button data-t="pf">Portfolio</button><button data-t="tm">Team</button><button data-t="fc">Funnel Check</button></div>
+
+<div id="t-ov"><select id="days"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select>
+<div class="cards" id="cards" style="margin-top:12px"></div><h2>Packages chosen (clicks)</h2><div id="pk"></div><h2>Packages booked</h2><div id="bp"></div></div>
+
+<div id="t-bk" hidden><div class="tw"><table><thead><tr><th>Date</th><th>Name</th><th>Phone</th><th>Package</th><th>Meeting</th><th>Status</th></tr></thead><tbody id="bkb"></tbody></table></div></div>
+
+<div id="t-pf" hidden><p class="m">Only active items appear on the website. If none are active, the Portfolio section stays hidden. Paste a link to an image for each item.</p>
+<form class="g" id="pff"><input id="te" placeholder="Title (English)" required><input id="ta" placeholder="العنوان (عربي)"><textarea id="de" class="f" rows="2" placeholder="Description (English)"></textarea><textarea id="da" class="f" rows="2" placeholder="الوصف (عربي)"></textarea><input id="im" placeholder="Image link (https://...)"><input id="lk" placeholder="Project link (optional)"><button class="p f" type="submit">Add item</button></form>
+<div class="tw" style="margin-top:12px"><table><tbody id="pfb"></tbody></table></div></div>
+
+<div id="t-tm" hidden><p class="m">Admins can see analytics, bookings and the portfolio. Only the owner can add or remove admins.</p>
+<form class="g" id="tmf"><input id="ne" type="email" placeholder="New admin email" required><button class="p" type="submit">Give access</button></form>
+<div class="tw" style="margin-top:12px"><table><tbody id="tmb"></tbody></table></div></div>
+
+<div id="t-fc" hidden><div id="fcup" hidden><p class="m">Owner only: choose your Funnel Check .html file. It is stored privately in the database and shown only to signed-in admins.</p><input type="file" id="fcf" accept=".html,text/html"></div><p class="m" id="fcm"></p><iframe id="fc" title="Funnel Check" hidden></iframe></div>
+</div></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+var C=window.RIBH||{},$=function(i){return document.getElementById(i)};
+var NM={a1:"Audit",a2:"Launch",a3:"Growth",a4:"Scale",x:"General"},me=null,role="";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+if(!C.url||!C.key){$("msg").textContent="Add your Supabase URL and key in config.js first.";$("go").disabled=true}
+else{var sb=supabase.createClient(C.url,C.key);
+$("go").onclick=function(){sb.auth.signInWithOtp({email:$("em").value.trim(),options:{emailRedirectTo:location.href.split("#")[0]}}).then(function(r){$("msg").textContent=r.error?r.error.message:"Check your email and open the link."})};
+$("out").onclick=function(){sb.auth.signOut().then(function(){location.reload()})};
+sb.auth.getSession().then(function(r){if(r.data.session)start(r.data.session.user.email)})}
+function start(email){me=email;sb.from("admins").select("*").then(function(r){var rows=r.data||[];var mine=rows.find(function(x){return x.email.toLowerCase()===email.toLowerCase()});
+ if(!mine){$("msg").textContent="This email has no admin access.";$("login").hidden=false;$("out").hidden=false;return}
+ role=mine.role;$("login").hidden=true;$("app").hidden=false;$("out").hidden=false;$("who").textContent=email+" ("+role+")";team(rows);ov();bk();pf()})}
+$("tabs").onclick=function(e){var t=e.target.dataset.t;if(!t)return;document.querySelectorAll("#tabs button").forEach(function(b){b.classList.toggle("on",b===e.target)});["ov","bk","pf","tm","fc"].forEach(function(k){$("t-"+k).hidden=k!==t});if(t==="fc")fcLoad()};
+function pct(a,b){return b?(a/b*100).toFixed(1)+"%":"0%"}
+function ov(){sb.rpc("get_stats",{days:+$("days").value}).then(function(r){if(r.error){$("cards").innerHTML="<p>"+esc(r.error.message)+"</p>";return}var d=r.data,v=d.visitors,b=d.bookings;
+ $("cards").innerHTML='<div class="c"><b>'+v+'</b>Visitors</div><div class="c"><b>'+b+'</b>Bookings</div><div class="c"><b>'+pct(b,v)+'</b>Visitors who booked</div>';
+ function list(o,id){var s=Object.keys(o).reduce(function(a,k){return a+o[k]},0);$(id).innerHTML=Object.keys(o).sort(function(a,b){return o[b]-o[a]}).map(function(k){return '<div>'+esc(NM[k]||k)+': <b>'+o[k]+'</b> ('+pct(o[k],s)+')<div class="bar" style="width:'+(s?o[k]/s*100:0)+'%"></div></div>'}).join("")||'<p class="m">No data yet.</p>'}
+ list(d.packages,"pk");list(d.booked,"bp")})}
+$("days").onchange=ov;
+function bk(){sb.from("bookings").select("*").order("created_at",{ascending:false}).limit(200).then(function(r){$("bkb").innerHTML=(r.data||[]).map(function(x){var ph=String(x.phone).replace(/\D/g,"");return'<tr><td>'+new Date(x.created_at).toLocaleDateString()+'</td><td>'+esc(x.name)+'</td><td><a href="https://wa.me/'+(ph.indexOf("0")===0?"2"+ph:ph)+'" target="_blank" rel="noopener">'+esc(x.phone)+'</a></td><td>'+esc(NM[x.pkg]||x.pkg)+'</td><td>'+esc(x.meeting_date||"")+' '+esc(x.slot||"")+'</td><td><select data-id="'+x.id+'">'+["new","contacted","won","lost"].map(function(s){return'<option'+(s===x.status?" selected":"")+'>'+s+'</option>'}).join("")+'</select></td></tr>'}).join("")||'<tr><td>No bookings yet.</td></tr>'})}
+$("bkb").onchange=function(e){var id=e.target.dataset.id;if(id)sb.from("bookings").update({status:e.target.value}).eq("id",id).then(function(){})};
+function pf(){sb.from("portfolio").select("*").order("id",{ascending:false}).then(function(r){$("pfb").innerHTML=(r.data||[]).map(function(x){return'<tr><td>'+esc(x.title_en)+'</td><td>'+(x.active?"Active":"Archived")+'</td><td><button data-a="'+(x.active?"off":"on")+'" data-id="'+x.id+'">'+(x.active?"Archive":"Activate")+'</button> <button data-a="del" data-id="'+x.id+'">Delete</button></td></tr>'}).join("")||'<tr><td>No items yet.</td></tr>'})}
+$("pfb").onclick=function(e){var a=e.target.dataset.a,id=e.target.dataset.id;if(!a)return;var q=a==="del"?(confirm("Delete this item for good?")?sb.from("portfolio").delete().eq("id",id):null):sb.from("portfolio").update({active:a==="on"}).eq("id",id);if(q)q.then(pf)};
+$("pff").onsubmit=function(e){e.preventDefault();sb.from("portfolio").insert({title_en:$("te").value,title_ar:$("ta").value,desc_en:$("de").value,desc_ar:$("da").value,image_url:$("im").value,link_url:$("lk").value,active:true}).then(function(r){if(r.error)alert(r.error.message);else{$("pff").reset();pf()}})};
+function team(rows){$("tmb").innerHTML=rows.map(function(x){return'<tr><td>'+esc(x.email)+'</td><td>'+x.role+'</td><td>'+(role==="owner"&&x.role!=="owner"?'<button data-e="'+esc(x.email)+'">Remove</button>':"")+'</td></tr>'}).join("")}
+function reload(){sb.from("admins").select("*").then(function(r){team(r.data||[])})}
+$("tmf").onsubmit=function(e){e.preventDefault();sb.from("admins").insert({email:$("ne").value.trim().toLowerCase(),role:"admin"}).then(function(r){if(r.error)alert("Only the owner can add admins.");else{$("tmf").reset();reload()}})};
+$("tmb").onclick=function(e){var m=e.target.dataset.e;if(m&&confirm("Remove "+m+"?"))sb.from("admins").delete().eq("email",m).then(reload)};
+function fcLoad(){$("fcup").hidden=role!=="owner";sb.from("private_pages").select("html").eq("name","funnel-check").maybeSingle().then(function(r){var h=r.data&&r.data.html;$("fc").hidden=!h;$("fcm").textContent=h?"":(r.error?r.error.message:"Not uploaded yet."+(role==="owner"?" Choose your Funnel Check file above.":" Ask the owner to upload it."));if(h)$("fc").srcdoc=h})}
+$("fcf").onchange=function(e){var f=e.target.files[0];if(!f)return;f.text().then(function(t){return sb.from("private_pages").upsert({name:"funnel-check",html:t})}).then(function(r){if(r&&r.error)alert(r.error.message);else fcLoad()})};
+</script>
+</body>
+</html>

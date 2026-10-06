@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Sitemap: https://mahmoudyahya111.github.io/My-Mb/sitemap.xml
