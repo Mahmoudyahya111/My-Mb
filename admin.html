@@ -29,7 +29,7 @@ iframe{width:100%;height:1400px;border:0;display:block;background:transparent}
 </head>
 <body><div class="w">
 <header><h1>Ribh Admin</h1><div><span class="m" id="who"></span> <button id="out" hidden>Sign out</button></div></header>
-<div id="login"><p>Sign in with your email. We will send you a one-time link.</p><input id="em" type="email" placeholder="you@email.com"> <button class="p" id="go">Send link</button><p class="m" id="msg"></p></div>
+<div id="login"><p>Sign in with your email. We will send you a one-time link.</p><input id="em" type="email" placeholder="you@email.com"> <button class="p" id="go">Send link</button><p class="m">Or sign in with a password:</p><input id="pw" type="password" placeholder="Password" autocomplete="current-password"> <button class="p" id="si">Sign in</button><p class="m" id="msg"></p></div>
 <div id="app" hidden>
 <div class="tabs" id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="bk">Bookings</button><button data-t="pf">Portfolio</button><button data-t="tm">Team</button><button data-t="fc">Funnel Check</button></div>
 
@@ -54,9 +54,10 @@ iframe{width:100%;height:1400px;border:0;display:block;background:transparent}
 var C=window.RIBH||{},$=function(i){return document.getElementById(i)};
 var NM={a1:"Audit",a2:"Launch",a3:"Growth",a4:"Scale",x:"General"},me=null,role="";
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-if(!C.url||!C.key){$("msg").textContent="Add your Supabase URL and key in config.js first.";$("go").disabled=true}
+if(!C.url||!C.key){$("msg").textContent="Add your Supabase URL and key in config.js first.";$("go").disabled=$("si").disabled=true}
 else{var sb=supabase.createClient(C.url,C.key);
 $("go").onclick=function(){sb.auth.signInWithOtp({email:$("em").value.trim(),options:{emailRedirectTo:location.href.split("#")[0]}}).then(function(r){$("msg").textContent=r.error?r.error.message:"Check your email and open the link."})};
+$("si").onclick=function(){sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value}).then(function(r){if(r.error)$("msg").textContent=r.error.message;else start(r.data.user.email)})};
 $("out").onclick=function(){sb.auth.signOut().then(function(){location.reload()})};
 sb.auth.getSession().then(function(r){if(r.data.session)start(r.data.session.user.email)})}
 function start(email){me=email;sb.from("admins").select("*").then(function(r){var rows=r.data||[];var mine=rows.find(function(x){return x.email.toLowerCase()===email.toLowerCase()});
