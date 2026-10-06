@@ -1,15 +1,134 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Funnel Check</title>
-<style>body{font-family:system-ui,sans-serif;background:#0e1923;color:#e8eef3;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:16px}a{color:#f2b04a}</style></head>
-<body><div><p id="m">Loading...</p><p><a href="admin.html">Go to admin sign in</a></p></div>
-<script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Funnel Check</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f4;--ink:#14232e;--mut:#5b6b78;--card:#fff;--line:#d5dce2;--teal:#0e7c7b;--amb:#a96a00;--red:#c0392b;--grn:#1f8a4c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a22;--ink:#e6edf2;--mut:#93a4b1;--card:#16252f;--line:#2a3b47;--teal:#3cc2bf;--amb:#e0a84a;--red:#ef7f70;--grn:#52c17f}}
+:root[data-theme="dark"]{--bg:#0f1a22;--ink:#e6edf2;--mut:#93a4b1;--card:#16252f;--line:#2a3b47;--teal:#3cc2bf;--amb:#e0a84a;--red:#ef7f70;--grn:#52c17f}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:30px;font-weight:800;margin:8px 0 2px;letter-spacing:-.02em}h2{font-size:19px;font-weight:600;margin:0 0 10px}
+.sub{color:var(--mut);margin:0 0 16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 14px}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;width:100%}
+textarea{min-height:64px}
+button{width:auto;cursor:pointer;background:var(--teal);color:#fff;border-color:var(--teal);font-weight:600}
+button.g{background:transparent;color:var(--ink);border-color:var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.bar>*{flex:1 1 140px}.bar button{flex:0 0 auto}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:600}
+tr.t td{font-weight:800}
+.m{border-left:4px solid var(--line);padding:6px 10px;margin:6px 0}.m.good{border-color:var(--grn)}.m.warn{border-color:var(--amb)}.m.bad{border-color:var(--red)}
+.m b{font-weight:600}.tag{font-size:12px;font-weight:600;margin-left:6px}.good .tag{color:var(--grn)}.warn .tag{color:var(--amb)}.bad .tag{color:var(--red)}
+.m p{margin:2px 0 0;color:var(--mut)}.big{font-size:26px;font-weight:800}
+.note{font-size:13px;color:var(--mut)}
+@media print{.noprint{display:none!important}body{background:#fff;color:#000}section{break-inside:avoid;border-color:#bbb}}
+</style></head><body><main>
+<h1>Funnel Check</h1><p class="sub">Import ad and email results, find the leak in the funnel, and plan next budgets.</p>
+
+<section class="noprint"><h2>Project</h2>
+<div class="bar"><div><label>Open project</label><select id="sel"></select></div><button id="new">New project</button><button class="g" id="del">Delete project</button></div></section>
+
+<section><h2>Brief</h2>
+<div class="row"><div><label>Project name (no client names)</label><input id="name"></div>
+<div><label>Country</label><select id="country"></select></div>
+<div><label>Industry</label><select id="ind"></select></div>
+<div><label>Currency code of your data</label><input id="cur" placeholder="EGP"></div>
+<div><label>1 USD = ? in that currency</label><input id="fx" type="number" step="any"></div>
+<div><label>Average order / deal value</label><input id="aov" type="number" step="any"></div></div>
+<label>Company description</label><textarea id="company"></textarea>
+<label>Product description</label><textarea id="product"></textarea>
+<p class="note">Emails, phone numbers and links are stripped automatically on save. Avoid personal names. Data stays in this browser only.</p>
+<button id="save" class="noprint">Save brief</button></section>
+
+<section class="noprint"><h2>Import results</h2>
+<div class="row"><div><label>Platform</label><select id="plat"></select></div><div><label>Spend, if the file has none</label><input id="fb" type="number" step="any"></div><div><label>CSV file</label><input id="file" type="file" accept=".csv,.txt"></div></div>
+<label>Or paste CSV with headers</label><textarea id="paste" placeholder="Amount spent,Impressions,Clicks,Purchases,Purchase value"></textarea>
+<div class="bar" style="margin-top:8px"><button id="imp">Import</button><button class="g" id="clr">Clear all data</button></div>
+<p class="note" id="msg">Use each platform's standard export. Columns detected: spend or cost, impressions or sent, clicks, conversions or purchases, revenue or conversion value, opens, unsubscribes. Only totals are stored, no contact data.</p></section>
+
+<section><h2>Spend and results</h2><div class="sc" id="tbl"></div></section>
+<section><h2>What is working, what is not</h2><div id="diag"></div></section>
+
+<section><h2>Budget planner</h2>
+<div class="row noprint"><div><label>Target conversions per month</label><input id="tgt" type="number" value="100"></div><div><label>Months of testing</label><input id="mon" type="number" value="3"></div></div>
+<div id="bud"></div></section>
+
+<section class="noprint"><h2>Share with a client</h2><div class="bar"><button id="prt">Print or save as PDF</button><button class="g" id="cp">Copy text summary</button></div><p class="note" id="cpm"></p></section>
+</main>
 <script>
-var C=window.RIBH||{},m=document.getElementById("m");
-if(!C.url||!C.key){m.textContent="Missing Supabase settings in config.js."}
-else{var sb=supabase.createClient(C.url,C.key);
-sb.auth.getSession().then(function(r){if(!r.data.session){m.textContent="Please sign in on the admin page first.";return}
- return sb.from("private_pages").select("html").eq("name","funnel-check").maybeSingle().then(function(x){
-  if(x.data&&x.data.html){document.open();document.write(x.data.html);document.close()}
-  else m.textContent="No access, or Funnel Check has not been uploaded yet."})})}
+const $=s=>document.querySelector(s),esc=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CM={Egypt:.2,'Saudi Arabia':1,UAE:1.2,Jordan:.3,Morocco:.2,Turkey:.3,India:.1,UK:.9,Germany:.9,USA:1,Other:.5};
+const IND={ecommerce:[40,2,{Meta:45,TikTok:20,'Google Ads':25,Snapchat:10}],fintech:[90,3,{Meta:30,'Google Ads':40,TikTok:10,LinkedIn:10,Mailchimp:10}],saas:[110,3,{'Google Ads':40,LinkedIn:30,Meta:15,Mailchimp:15}],realestate:[70,2,{Meta:50,'Google Ads':35,Snapchat:10,Mailchimp:5}],education:[55,3,{Meta:45,'Google Ads':25,TikTok:20,Mailchimp:10}],services:[60,3.5,{'Google Ads':45,Meta:35,LinkedIn:10,Mailchimp:10}]};
+const PL={Meta:[1,.9],TikTok:[.8,.6],'Google Ads':[3,2],LinkedIn:[.55,5],Snapchat:[.6,.6],X:[.7,.6],Pinterest:[.4,.5],YouTube:[.6,.4],Mailchimp:[0,0]};
+let S=load();
+function load(){try{return JSON.parse(localStorage.getItem('fc1'))||{p:[],c:null}}catch(e){return{p:[],c:null}}}
+function persist(){try{localStorage.setItem('fc1',JSON.stringify(S))}catch(e){}}
+function cur(){return S.p.find(p=>p.id==S.c)}
+function scrub(t){return String(t||'').replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,'').replace(/https?:\/\/\S+|www\.\S+/g,'').replace(/\+?\d[\d\s().-]{7,}\d/g,'').trim()}
+function mk(){const p={id:Date.now(),name:'Untitled project',country:'Egypt',ind:'ecommerce',cur:'USD',fx:1,aov:0,company:'',product:'',rows:[]};S.p.push(p);S.c=p.id;persist();return p}
+if(!cur())S.p.length?S.c=S.p[0].id:mk();
+$('#country').innerHTML=Object.keys(CM).map(c=>`<option>${c}</option>`).join('');
+$('#ind').innerHTML=Object.keys(IND).map(c=>`<option>${c}</option>`).join('');
+$('#plat').innerHTML=Object.keys(PL).map(c=>`<option>${c}</option>`).join('');
+function csv(t){const r=[];let a=[],f='',q=0;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'&&t[i+1]=='"'){f+='"';i++}else if(c=='"')q=0;else f+=c}else if(c=='"')q=1;else if(c==','||c=='\t'){a.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;a.push(f);r.push(a);a=[];f=''}else f+=c}a.push(f);r.push(a);return r.filter(x=>x.join('').trim())}
+const AL={spend:['amountspent','spend','cost','totalspent','amount'],impr:['impressions','impr','emailssent','sent','totalrecipients','recipients'],clicks:['linkclicks','clicks','outboundclicks','uniqueclicks'],conv:['conversions','purchases','results','leads','orders','conv'],rev:['purchaseconversionvalue','conversionvalue','convvalue','revenue','sales','totalrevenue'],opens:['uniqueopens','opens','totalopens'],unsub:['unsubscribes','unsubscribed']};
+function col(h,l){for(const a of l){let i=h.indexOf(a);if(i>=0)return i}for(const a of l){let i=h.findIndex(x=>x.startsWith(a)&&!/per|rate|ctr|cpc|cpm/.test(x));if(i>=0)return i}return -1}
+const num=v=>parseFloat(String(v||'').replace(/[^0-9.\-]/g,''))||0;
+function doImport(txt){const p=cur(),pl=$('#plat').value,t=csv(txt);if(t.length<2)return'Need a header row and at least one data row.';
+const h=t[0].map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,'')),ix={};for(const k in AL)ix[k]=col(h,AL[k]);
+if(ix.impr<0&&ix.clicks<0&&ix.spend<0)return'No known columns found. Check headers such as Impressions, Clicks, Amount spent.';
+let n=0;const s={p:pl,spend:0,impr:0,clicks:0,conv:0,rev:0,opens:0,unsub:0};
+t.slice(1).forEach(r=>{if(/^total|^grand/i.test(String(r[0]).trim()))return;for(const k in AL)if(ix[k]>=0)s[k]+=num(r[ix[k]]);n++});
+if(!s.spend&&num($('#fb').value))s.spend=num($('#fb').value);
+p.rows.push(s);persist();return`Imported ${n} rows into ${pl}.`}
+$('#imp').onclick=()=>{const f=$('#file').files[0],go=t=>{$('#msg').textContent=doImport(t);draw()};f?f.text().then(go):go($('#paste').value)};
+$('#clr').onclick=()=>{cur().rows=[];persist();draw()};
+$('#save').onclick=()=>{const p=cur();p.name=scrub($('#name').value)||'Untitled project';p.country=$('#country').value;p.ind=$('#ind').value;p.cur=($('#cur').value||'USD').toUpperCase();p.fx=num($('#fx').value)||1;p.aov=num($('#aov').value);p.company=scrub($('#company').value);p.product=scrub($('#product').value);persist();draw()};
+$('#new').onclick=()=>{mk();draw()};
+$('#del').onclick=()=>{S.p=S.p.filter(p=>p.id!=S.c);S.c=null;S.p.length?S.c=S.p[0].id:mk();persist();draw()};
+$('#sel').onchange=e=>{S.c=+e.target.value;persist();draw()};
+['tgt','mon'].forEach(i=>$('#'+i).oninput=()=>bud());
+$('#prt').onclick=()=>{try{window.print()}catch(e){$('#cpm').textContent='Printing is blocked here. Use Copy text summary.'}};
+function agg(rows,pl){const a={spend:0,impr:0,clicks:0,conv:0,rev:0,opens:0,unsub:0};rows.filter(r=>!pl||r.p==pl).forEach(r=>{for(const k in a)a[k]+=r[k]});return a}
+const d=(a,b)=>b?a/b:null,f2=v=>v==null?'—':v>=100?Math.round(v).toLocaleString():v.toFixed(2);
+function metrics(a,p){const r=a.rev||(p.aov&&a.conv?a.conv*p.aov:0);return{ctr:d(a.clicks,a.impr)*100,cpc:d(a.spend,a.clicks),cpm:d(a.spend,a.impr)*1000,cvr:d(a.conv,a.clicks)*100,cpa:d(a.spend,a.conv),roas:d(r,a.spend),rev:r}}
+const N={ctr:{good:'Creative and audience are earning attention. Keep testing new hooks to protect this.',warn:'Slightly under benchmark: the ad is only partly relevant. Test new hooks and tighten the audience.',bad:'People see the ad and ignore it. Likely weak hook or creative, wrong audience, or ad fatigue.'},
+cpc:{good:'Traffic is cheap against benchmark.',warn:'Slightly expensive. Low CTR or a crowded auction pushes click cost up.',bad:'Paying too much per click. Usually low CTR or relevance, narrow audience, or bids set too high.'},
+cpm:{good:'Reach is cost-efficient.',warn:'Auction is a little pricey for this audience.',bad:'Expensive reach: audience too narrow, heavy competition, or weak engagement signals.'},
+cvr:{good:'The page and offer convert the clicks you pay for.',warn:'Some leakage after the click. Check mobile speed, offer clarity and checkout friction.',bad:'Clicks are not converting. Suspect ad-to-page mismatch, slow mobile page, price shock, weak trust signals, or broken tracking.'},
+cpa:{good:'Acquisition cost is within benchmark.',warn:'Cost per conversion is drifting up. Fix the weakest earlier stage before scaling.',bad:'Each conversion costs too much. Do not scale until CTR or conversion rate improves.'},
+roas:{good:'Revenue clearly beats spend. Scale gradually, about 20% at a time.',warn:'Close to break-even once margins are counted. Improve conversion rate or order value first.',bad:'Spend is not earning back. Pause weak campaigns and review the offer and funnel.'},
+open:{good:'Subject lines and sender reputation are healthy.',warn:'Open rate is soft. Test subject lines and send time.',bad:'Very low opens: subject line, sender name, list quality or deliverability problem.'},
+clk:{good:'Content and call to action drive clicks.',warn:'Click rate is soft. Sharpen the call to action and segment the list.',bad:'Readers open but do not click. Content or offer is not compelling for this segment.'},
+uns:{good:'Unsubscribes are low.',warn:'Unsubscribes are rising. Reduce frequency or segment better.',bad:'High unsubscribes: too frequent or irrelevant sends.'}};
+function it(k,name,v,b,hi,fmt){if(v==null||isNaN(v))return null;const s=hi?(v>=b?'good':v>=.7*b?'warn':'bad'):(v<=b?'good':v<=1.3*b?'warn':'bad');return{k,name,v,b,s,fmt}}
+function items(pl,a,p){const m=metrics(a,p),cm=CM[p.country]||.5,fx=p.fx||1,I=IND[p.ind],o=[];
+if(pl=='Mailchimp'){o.push(it('open','Open rate',d(a.opens,a.impr)*100,21,1,'%'),it('clk','Click rate',d(a.clicks,a.impr)*100,2.5,1,'%'),it('uns','Unsubscribe rate',d(a.unsub,a.impr)*100,.5,0,'%'),it('cvr','Conversion rate after click',m.cvr,I[1],1,'%'));if(a.conv)o.push(it('cpa','Cost per conversion',m.cpa,I[0]*cm*fx,0,''))}
+else{const B=PL[pl];o.push(it('ctr','CTR',m.ctr,B[0],1,'%'),it('cpc','CPC',m.cpc,B[1]*cm*fx,0,''),it('cpm','CPM',m.cpm,B[0]*B[1]*cm*fx*10,0,''),it('cvr','Conversion rate',m.cvr,I[1],1,'%'),it('cpa','Cost per conversion',m.cpa,I[0]*cm*fx,0,''));if(m.roas!=null)o.push(it('roas','ROAS',m.roas,3,1,'x'))}
+return o.filter(Boolean)}
+const fv=x=>f2(x.v)+x.fmt,fb=x=>(x.s=='good'?'':'')+'benchmark '+(x.k=='open'||x.k=='clk'||x.k=='ctr'||x.k=='cvr'||x.k=='roas'?'≥ ':'≤ ')+f2(x.b)+x.fmt;
+function draw(){const p=cur();$('#sel').innerHTML=S.p.map(x=>`<option value="${x.id}" ${x.id==p.id?'selected':''}>${esc(x.name)}</option>`).join('');
+$('#name').value=p.name;$('#country').value=p.country;$('#ind').value=p.ind;$('#cur').value=p.cur;$('#fx').value=p.fx;$('#aov').value=p.aov||'';$('#company').value=p.company;$('#product').value=p.product;
+const pls=[...new Set(p.rows.map(r=>r.p))];
+if(!pls.length){$('#tbl').innerHTML='<p class="note">No data yet. Import a CSV above to see totals and per-platform numbers.</p>';$('#diag').innerHTML='<p class="note">Diagnosis appears after your first import.</p>'}
+else{let h=`<table><tr><th>Platform</th><th>Spend ${esc(p.cur)}</th><th>Impr.</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>CPM</th><th>Conv.</th><th>CVR</th><th>CPA</th><th>ROAS</th></tr>`;
+const row=(n,a,c)=>{const m=metrics(a,p);return`<tr class="${c||''}"><td>${esc(n)}</td><td>${f2(a.spend)}</td><td>${f2(a.impr)}</td><td>${f2(a.clicks)}</td><td>${f2(m.ctr)}%</td><td>${f2(m.cpc)}</td><td>${f2(m.cpm)}</td><td>${f2(a.conv)}</td><td>${f2(m.cvr)}%</td><td>${f2(m.cpa)}</td><td>${m.roas==null?'—':f2(m.roas)+'x'}</td></tr>`};
+pls.forEach(l=>h+=row(l,agg(p.rows,l)));h+=row('Total',agg(p.rows),'t')+'</table>';$('#tbl').innerHTML=h;
+let g='';pls.forEach(l=>{const a=agg(p.rows,l),L=items(l,a,p),bad=L.filter(x=>x.s=='bad');g+=`<h2 style="margin-top:14px">${esc(l)}: ${bad.length?bad.length+' weak point'+(bad.length>1?'s':''):'no weak points'}</h2>`;
+if(!L.length)g+='<p class="note">Not enough columns to judge this platform.</p>';L.forEach(x=>g+=`<div class="m ${x.s}"><b>${x.name} ${fv(x)}</b><span class="tag">${x.s=='good'?'On track':x.s=='warn'?'Needs work':'Weak point'}</span> <span class="note">${fb(x)}</span><p>${N[x.k][x.s]}</p></div>`)});
+const all=[];pls.forEach(l=>items(l,agg(p.rows,l),p).filter(x=>x.s=='bad').forEach(x=>all.push(l+' '+x.name)));
+g=`<div class="m ${all.length?'bad':'good'}"><b>${all.length?'Where the funnel leaks: '+esc(all.join(', ')):'No weak points against benchmark'}</b><p>Fix problems in funnel order: attention (CTR), then traffic cost (CPC), then page conversion (CVR), then cost per result. Benchmarks are rough regional estimates, so compare with your own history too.</p></div>`+g;$('#diag').innerHTML=g}
+bud()}
+function bud(){const p=cur(),I=IND[p.ind],cm=CM[p.country]||.5,fx=p.fx||1,t=num($('#tgt').value),mo=num($('#mon').value)||1,cpaB=I[0]*cm*fx,own=metrics(agg(p.rows),p).cpa;
+const cpa=own?(own+cpaB)/2:cpaB,base=t*cpa,lo=base*.8,mid=base*1.2,hi=base*1.6,c=esc(p.cur);
+let split=Object.entries(I[2]).map(([k,v])=>`${k} ${v}%`).join(', ');
+$('#bud').innerHTML=`<div class="big">${f2(mid)} ${c} per month</div><p class="note">Recommended for ${f2(t)} conversions a month. Lean ${f2(lo)} | Aggressive ${f2(hi)} | ${mo}-month test: ${f2(mid*mo)} ${c}.</p>
+<div class="m"><b>How this is worked out</b><p>Expected cost per conversion for ${esc(p.ind)} in ${esc(p.country)} is about ${f2(cpaB)} ${c} (benchmark scaled for local ad prices).${own?` Your own average is ${f2(own)} ${c}, so the plan uses the midpoint ${f2(cpa)}.`:' Import results to replace the benchmark with your real cost.'} Budget = target conversions × cost per conversion × 1.2, the extra 20% pays for the learning phase and creative testing.</p></div>
+<div class="m"><b>Suggested split for ${esc(p.ind)}</b><p>${split}. Put the largest share where your data shows the lowest CPA, and move 10-20% a month toward winners.</p></div>
+<div class="m warn"><b>No spend level can guarantee results</b><p>Results depend on offer, creative, page and tracking. Use this as the minimum needed to get a statistically useful read: roughly 50 conversions per channel before judging it. ${p.company||p.product?'Brief on file: '+esc((p.company+' '+p.product).slice(0,260)):'Add company and product descriptions above to keep the brief with the plan.'}</p></div>`}
+$('#cp').onclick=()=>{const p=cur(),a=agg(p.rows),m=metrics(a,p);const txt=`${p.name} (${p.country}, ${p.ind})\n${p.company}\n${p.product}\nSpend ${f2(a.spend)} ${p.cur} | Clicks ${f2(a.clicks)} | CTR ${f2(m.ctr)}% | CPC ${f2(m.cpc)} | Conv ${f2(a.conv)} | CPA ${f2(m.cpa)} | ROAS ${m.roas==null?'—':f2(m.roas)+'x'}\n`+[...new Set(p.rows.map(r=>r.p))].map(l=>l+': '+items(l,agg(p.rows,l),p).map(x=>x.name+' '+fv(x)+' ('+x.s+')').join(', ')).join('\n');
+try{navigator.clipboard.writeText(txt).then(()=>$('#cpm').textContent='Copied.')}catch(e){$('#cpm').textContent='Copy is blocked here. Use Print instead.'}};
+draw();
 </script></body></html>
