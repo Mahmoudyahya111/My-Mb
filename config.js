@@ -1,2 +1,2 @@
 // Paste your Supabase values here (Project Settings > API). The anon key is meant to be public; the database rules protect your data.
-window.RIBH={url:"",key:"",site:"https://mahmoudyahya111.github.io/My-Mb/"};
+window.RIBH={url:"https://uynfpvmbxqoywdwrvbhp.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bmZwdm1ieHFveXdkd3J2YmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzgzNjYsImV4cCI6MjEwNjg1NDM2Nn0.jAXkC1xAD2YlB7psjrXJXdDxU2XlPZG-WpRR1zSeg8c",site:"https://mahmoudyahya111.github.io/My-Mb/"};
