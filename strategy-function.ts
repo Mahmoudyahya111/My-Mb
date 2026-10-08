@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const c = (x: unknown, n = 1500) => String(x ?? "").slice(0, n);
     const brief = `Business type: ${c(b.business, 300)}\nProducts/services: ${c(b.products)}\nMarket/location: ${c(b.market, 200)}\nMonthly ad budget (EGP): ${c(b.budget, 40) || "not given"}\nMain goal: ${c(b.goal, 60)}\nExtra notes: ${c(b.notes)}\nLanguage: ${b.lang === "ar" ? "ar" : "en"}`;
     // ===== GEMINI (active) =====
-    const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
+    const model = Deno.env.get("GEMINI_MODEL") || "gemini-3.8-flash";
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
       headers: { "x-goog-api-key": Deno.env.get("GEMINI_API_KEY")!, "content-type": "application/json" },
@@ -55,5 +55,5 @@ Deno.serve(async (req) => {
     // const t = (j.content || []).map((x: { text?: string }) => x.text || "").join("").replace(/^```(?:json)?|```$/g, "").trim();
     // return out({ result: JSON.parse(t) });
     // ===== END CLAUDE =====
-  } catch (e) { return out({ error: "Could not build the strategy. Try again." }); }
+  } catch (e) { console.error(e); return out({ error: "Could not build the strategy: " + String(e).slice(0, 200) }); }
 });
