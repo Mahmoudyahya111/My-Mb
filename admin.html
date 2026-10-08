@@ -31,7 +31,7 @@ iframe{width:100%;height:1400px;border:0;display:block;background:transparent}
 <header><h1>Ribh Admin</h1><div><span class="m" id="who"></span> <button id="out" hidden>Sign out</button></div></header>
 <div id="login"><p>Sign in with your email. We will send you a one-time link.</p><input id="em" type="email" placeholder="you@email.com"> <button class="p" id="go">Send link</button><p class="m">Or sign in with a password:</p><input id="pw" type="password" placeholder="Password" autocomplete="current-password"> <button class="p" id="si">Sign in</button><p class="m" id="msg"></p></div>
 <div id="app" hidden>
-<div class="tabs" id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="bk">Bookings</button><button data-t="pf">Portfolio</button><button data-t="tm">Team</button><button data-t="fc">Funnel Check</button></div>
+<div class="tabs" id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="bk">Bookings</button><button data-t="pf">Portfolio</button><button data-t="tm">Team</button><button data-t="fc">Funnel Check</button><button data-t="sb">Strategy Builder</button></div>
 
 <div id="t-ov"><select id="days"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select>
 <div class="cards" id="cards" style="margin-top:12px"></div><h2>Packages chosen (clicks)</h2><div id="pk"></div><h2>Packages booked</h2><div id="bp"></div></div>
@@ -46,6 +46,7 @@ iframe{width:100%;height:1400px;border:0;display:block;background:transparent}
 <form class="g" id="tmf"><input id="ne" type="email" placeholder="New admin email" required><button class="p" type="submit">Give access</button></form>
 <div class="tw" style="margin-top:12px"><table><tbody id="tmb"></tbody></table></div></div>
 
+<div id="t-sb" hidden><p class="m">Enter a business and its products and get a full strategy: campaigns, keywords, website copy, creatives and audiences, as a PDF you can present.</p><a href="strategy.html" style="display:inline-block;padding:10px 18px;border-radius:8px;text-decoration:none;background:var(--ac);color:#fff;font-weight:600">Open Strategy Builder</a></div>
 <div id="t-fc" hidden><div id="fcup" hidden><p class="m">Owner only: choose your Funnel Check .html file. It is stored privately in the database and shown only to signed-in admins.</p><input type="file" id="fcf" accept=".html,text/html"></div><p class="m" id="fcm"></p><a id="fco" href="funnel.html" hidden style="display:inline-block;padding:10px 18px;border-radius:8px;text-decoration:none;background:var(--ac);color:#fff;font-weight:600">Open Funnel Check</a></div>
 </div></div>
 <script src="config.js"></script>
@@ -63,7 +64,7 @@ sb.auth.getSession().then(function(r){if(r.data.session)start(r.data.session.use
 function start(email){me=email;sb.from("admins").select("*").then(function(r){var rows=r.data||[];var mine=rows.find(function(x){return x.email.toLowerCase()===email.toLowerCase()});
  if(!mine){$("msg").textContent="This email has no admin access.";$("login").hidden=false;$("out").hidden=false;return}
  role=mine.role;$("login").hidden=true;$("app").hidden=false;$("out").hidden=false;$("who").textContent=email+" ("+role+")";team(rows);ov();bk();pf()})}
-$("tabs").onclick=function(e){var t=e.target.dataset.t;if(!t)return;document.querySelectorAll("#tabs button").forEach(function(b){b.classList.toggle("on",b===e.target)});["ov","bk","pf","tm","fc"].forEach(function(k){$("t-"+k).hidden=k!==t});if(t==="fc")fcLoad()};
+$("tabs").onclick=function(e){var t=e.target.dataset.t;if(!t)return;document.querySelectorAll("#tabs button").forEach(function(b){b.classList.toggle("on",b===e.target)});["ov","bk","pf","tm","fc","sb"].forEach(function(k){$("t-"+k).hidden=k!==t});if(t==="fc")fcLoad()};
 function pct(a,b){return b?(a/b*100).toFixed(1)+"%":"0%"}
 function ov(){sb.rpc("get_stats",{days:+$("days").value}).then(function(r){if(r.error){$("cards").innerHTML="<p>"+esc(r.error.message)+"</p>";return}var d=r.data,v=d.visitors,b=d.bookings;
  $("cards").innerHTML='<div class="c"><b>'+v+'</b>Visitors</div><div class="c"><b>'+b+'</b>Bookings</div><div class="c"><b>'+pct(b,v)+'</b>Visitors who booked</div>';
