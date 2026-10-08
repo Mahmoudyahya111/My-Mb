@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Strategy Builder | Ribh</title><link rel="icon" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6f8;--fg:#12263a;--mut:#53677a;--card:#fff;--line:#d5dee6;--ac:#0e7c86;--hot:#d98a14}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1923;--fg:#e8eef3;--mut:#9db0bf;--card:#162634;--line:#2a3d4d;--ac:#3cc2cd;--hot:#f2b04a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 Cairo,system-ui,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+a{color:var(--ac)}h1{font-size:24px;margin:0}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.f{grid-column:1/-1}label{display:block;font-size:13px;color:var(--mut)}
+input,select,textarea,button{font:inherit;width:100%;border-radius:8px;border:1px solid var(--line);padding:9px 11px;background:var(--bg);color:var(--fg)}
+button{cursor:pointer;background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700;width:auto;padding:10px 20px}button:disabled{opacity:.6}
+.m{color:var(--mut)}
+.cover{background:linear-gradient(160deg,#0b1a2b,#123650);color:#fff;border-radius:14px;padding:40px 28px;margin:18px 0}
+.cover .lg{font-weight:900;font-size:28px}.cover .lg i{display:inline-block;width:16px;height:16px;border-radius:50%;background:#f2b04a;box-shadow:0 0 0 5px #3cc2cd;margin-inline-end:12px}
+.cover h2{font-size:34px;margin:30px 0 6px;color:#fff}.cover p{margin:0;opacity:.85}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}
+.sec h3{margin:0 0 10px;font-size:20px;color:var(--ac)}.sec h3 span{background:var(--hot);color:#10222f;border-radius:50%;display:inline-block;width:28px;height:28px;text-align:center;line-height:28px;font-size:15px;margin-inline-end:8px}
+.sec h4{margin:14px 0 4px;font-size:16px}.it{border-inline-start:4px solid var(--hot);padding:2px 12px;margin:8px 0;break-inside:avoid}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:start;vertical-align:top}th{color:var(--mut)}
+.tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:0 10px;margin:2px;font-size:13px}
+.note{font-size:13px;color:var(--mut)}
+@page{size:A4;margin:14mm}
+@media print{.noprint{display:none!important}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:#fff;color:#12263a;font-size:12.5pt}.w{max-width:none;padding:0}.sec,.cover{border-color:#ccc;background:#fff;box-shadow:none}.cover{background:#123650}.sec{break-inside:auto}.sec h3{break-after:avoid}tr,.it{break-inside:avoid}.cover{break-after:page}}
+</style></head>
+<body><div class="w">
+<header class="noprint"><h1>Strategy Builder</h1><a href="admin.html">Back to admin</a></header>
+<p id="gate" class="m noprint">Checking access...</p>
+<div id="app" hidden>
+<form id="fm" class="noprint">
+<div class="f"><label>Type of business</label><input id="biz" required placeholder="e.g. Home furniture brand, dental clinic, online clothing store"></div>
+<div class="f"><label>Products or services to sell</label><textarea id="prod" rows="3" required placeholder="List what you sell, with prices if you like"></textarea></div>
+<div><label>Market / location</label><input id="mkt" value="Egypt"></div>
+<div><label>Monthly ad budget (EGP, optional)</label><input id="bud" type="number"></div>
+<div><label>Main goal</label><select id="goal"><option>Sales</option><option>Leads / enquiries</option><option>WhatsApp messages</option><option>Brand awareness</option></select></div>
+<div><label>Report language</label><select id="lang"><option value="en">English</option><option value="ar">Egyptian Arabic</option></select></div>
+<div class="f"><label>Anything else the strategy should know (optional)</label><textarea id="nt" rows="2"></textarea></div>
+<div class="f"><button id="go" type="submit">Generate strategy</button> <span id="st" class="m"></span></div>
+</form>
+<div id="rep"></div>
+<p class="noprint"><button id="pdf" hidden>Download PDF</button> <span id="pm" class="m"></span></p>
+</div></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+var C=window.RIBH||{},$=function(i){return document.getElementById(i)},sb;
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function A(x){return Array.isArray(x)?x:[]}
+function deny(m){$("gate").textContent=m;$("gate").insertAdjacentHTML("beforeend",' <a href="admin.html">Go to admin sign in</a>')}
+if(!C.url||!C.key)deny("Missing Supabase settings in config.js.");
+else{sb=supabase.createClient(C.url,C.key);sb.auth.getSession().then(function(r){if(!r.data.session)return deny("Please sign in on the admin page first.");sb.rpc("is_admin").then(function(x){if(x.data===true){$("gate").hidden=true;$("app").hidden=false}else deny("This account has no admin access.")})})}
+$("fm").onsubmit=function(e){e.preventDefault();var b={business:$("biz").value,products:$("prod").value,market:$("mkt").value,budget:$("bud").value,goal:$("goal").value,lang:$("lang").value,notes:$("nt").value};
+ $("go").disabled=true;$("st").textContent="Building your strategy. This can take up to a minute...";$("pdf").hidden=true;
+ sb.functions.invoke("strategy",{body:b}).then(function(r){$("go").disabled=false;
+  if(r.error||!r.data||r.data.error){$("st").textContent=(r.data&&r.data.error)||"The strategy service is not available yet. Check the setup steps.";return}
+  $("st").textContent="Done.";draw(r.data.result,b);$("pdf").hidden=false;$("pdf").dataset.n=b.business})};
+function T(h,rows){return'<table><tr>'+h.map(function(x){return"<th>"+x+"</th>"}).join("")+"</tr>"+rows.map(function(r){return"<tr>"+r.map(function(c){return"<td>"+E(c)+"</td>"}).join("")+"</tr>"}).join("")+"</table>"}
+function S(n,t,body){return'<div class="sec"><h3><span>'+n+"</span>"+t+"</h3>"+body+"</div>"}
+function IT(a){return A(a).map(function(x){return'<div class="it"><b>'+E(x.platform)+" · "+E(x.format)+"</b><br>"+E(x.idea)+'<br><span class="note">'+E(x.why)+"</span></div>"}).join("")}
+function draw(d,b){var ar=b.lang==="ar",K=d.keywords||{},W=d.website_copy||{};$("rep").dir=ar?"rtl":"ltr";
+ var kr=function(a){return T(ar?["الكلمة","النية","المنافسة (تقدير)","ليه"]:["Keyword","Intent","Competition (estimate)","Why"],A(a).map(function(k){return[k.kw,k.intent,k.competition,k.why]}))};
+ var L=ar?{c:"استراتيجية تسويق",p:"المنتجات والخدمات",s:"الحملات المقترحة",k:"أقوى الكلمات المفتاحية",w:"نصوص الموقع",cr:"الكريتيف",y:"ليه الاستراتيجية دي",a:"الجمهور المستهدف",n:"الخطوات الجاية",pl:"المنصة",ob:"الهدف",ty:"نوع الحملة",bu:"الميزانية %",wh:"ليه",org:"بوستات عادية (من غير إعلان)",paid:"إعلانات مدفوعة",neg:"كلمات سلبية",pri:"أساسية",lt:"طويلة الذيل",arb:"كلمات بالعربي",dis:"الكلمات المفتاحية والمنافسة تقديرات للاسترشاد. اتأكد منها في Google Keyword Planner قبل الصرف. مفيش ضمان لنتايج معينة."}:{c:"Marketing Strategy",p:"Business and products",s:"Recommended campaigns",k:"Strongest keywords",w:"Website copywriting",cr:"Creatives",y:"Why this strategy",a:"Target audiences",n:"Next steps",pl:"Platform",ob:"Objective",ty:"Campaign type",bu:"Budget %",wh:"Why",org:"Organic posts (non-paid)",paid:"Paid ads",neg:"Negative keywords",pri:"Primary",lt:"Long-tail",arb:"Arabic keywords",dis:"Keywords and competition levels are estimates to guide you. Validate them in Google Keyword Planner before spending. No results are guaranteed."};
+ var h='<div class="cover"><div class="lg"><i></i>Ribh</div><h2>'+L.c+": "+E(b.business)+"</h2><p>"+E(b.market)+" · "+new Date().toLocaleDateString(ar?"ar-EG":"en-GB")+" · "+E(b.goal)+"</p></div>";
+ h+=S(1,L.p,"<p><b>"+E(b.business)+"</b></p><p>"+E(b.products).replace(/\n/g,"<br>")+"</p><p>"+E(d.summary)+"</p>");
+ h+=S(2,L.s,T([L.pl,L.ob,L.ty,L.bu,L.wh],A(d.campaigns).map(function(c){return[c.platform,c.objective,c.type,c.budget_pct,c.why]})));
+ h+=S(3,L.k,"<h4>"+L.pri+"</h4>"+kr(K.primary)+"<h4>"+L.lt+"</h4>"+kr(K.long_tail)+"<h4>"+L.arb+"</h4>"+kr(K.arabic)+"<h4>"+L.neg+"</h4><p>"+A(K.negative).map(function(x){return'<span class="tag">'+E(x)+"</span>"}).join("")+"</p>");
+ h+=S(4,L.w,'<p class="note">Meta title: '+E(W.meta_title)+"<br>Meta description: "+E(W.meta_description)+"</p><h4>"+E(W.headline)+"</h4><p>"+E(W.subheadline)+"</p><p><b>"+E(W.cta)+"</b></p>"+A(W.sections).map(function(s){return'<div class="it"><b>'+E(s.title)+"</b><br>"+E(s.body)+"</div>"}).join("")+"<h4>FAQ</h4>"+A(W.faqs).map(function(q){return"<p><b>"+E(q.q)+"</b><br>"+E(q.a)+"</p>"}).join(""));
+ h+=S(5,L.cr,"<h4>"+L.org+"</h4>"+IT(d.organic_creatives)+"<h4>"+L.paid+"</h4>"+IT(d.paid_creatives));
+ h+=S(6,L.y,"<p>"+E(d.why_overall)+"</p>");
+ h+=S(7,L.a,A(d.audiences).map(function(a){return'<div class="it"><b>'+E(a.name)+"</b><br>"+E(a.age)+" · "+E(a.gender)+" · "+E(a.location)+"<br>"+E(a.interests)+"<br>"+E(a.behaviours)+"<br>"+E(a.demographics)+'<br><span class="note">'+E(a.why)+"</span></div>"}).join(""));
+ h+=S(8,L.n,"<ol>"+A(d.next_steps).map(function(x){return"<li>"+E(x)+"</li>"}).join("")+'</ol><p class="note">'+L.dis+"</p>");
+ $("rep").innerHTML=h}
+$("pdf").onclick=function(){document.title=($("pdf").dataset.n||"Strategy")+" - Strategy";$("pm").textContent="In the print window, choose Save as PDF.";window.print()};
+</script></body></html>

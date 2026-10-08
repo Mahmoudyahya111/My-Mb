@@ -7,3 +7,9 @@
 5. Open `<your site>/admin.html`, sign in with mahmoudyahya66@gmail.com (owner). Use Team to add other admins.
 6. Funnel Check: do NOT put its file on GitHub. In Admin > Funnel Check (owner only), choose your Funnel Check .html file. It is stored in the database and only signed-in admins can open it.
 7. SEO: if you get a custom domain, replace `https://mahmoudyahya111.github.io/My-Mb/` in `index.html`, `robots.txt` and `sitemap.xml`. Then add the site in Google Search Console and submit `sitemap.xml`.
+
+## Strategy Builder (admin only)
+8. Get an Anthropic API key at console.anthropic.com (add a little credit). Each report costs a small amount.
+9. Supabase > Edge Functions > Deploy a new function > Via Editor. Name it exactly `strategy`. Paste all of `supabase/strategy-function.ts` and deploy. Leave "Verify JWT" on.
+10. Supabase > Edge Functions > Secrets: add `ANTHROPIC_API_KEY` with your key.
+11. Upload `strategy.html` and the updated `admin.html` and `robots.txt` to GitHub. Open Admin > Strategy Builder.
