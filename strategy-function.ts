@@ -1,4 +1,5 @@
-// Supabase Edge Function named "strategy". Needs the secret ANTHROPIC_API_KEY.
+// Supabase Edge Function named "strategy". Active provider: Google Gemini (free tier). Needs the secret GEMINI_API_KEY.
+// To switch back to Claude later: comment out the "GEMINI" block below, uncomment the "CLAUDE" block, and add the secret ANTHROPIC_API_KEY.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 const out = (o: unknown) => new Response(JSON.stringify(o), { headers: { ...cors, "Content-Type": "application/json" } });
@@ -26,14 +27,33 @@ Deno.serve(async (req) => {
     const b = await req.json();
     const c = (x: unknown, n = 1500) => String(x ?? "").slice(0, n);
     const brief = `Business type: ${c(b.business, 300)}\nProducts/services: ${c(b.products)}\nMarket/location: ${c(b.market, 200)}\nMonthly ad budget (EGP): ${c(b.budget, 40) || "not given"}\nMain goal: ${c(b.goal, 60)}\nExtra notes: ${c(b.notes)}\nLanguage: ${b.lang === "ar" ? "ar" : "en"}`;
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
+    // ===== GEMINI (active) =====
+    const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
-      headers: { "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-5-5", max_tokens: 8000, system: SYS, messages: [{ role: "user", content: brief }] }),
+      headers: { "x-goog-api-key": Deno.env.get("GEMINI_API_KEY")!, "content-type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYS }] },
+        contents: [{ role: "user", parts: [{ text: brief }] }],
+        generationConfig: { responseMimeType: "application/json", maxOutputTokens: 16000, temperature: 0.7 },
+      }),
     });
     const j = await r.json();
     if (!r.ok) return out({ error: j?.error?.message || "AI request failed." });
-    const t = (j.content || []).map((x: { text?: string }) => x.text || "").join("").replace(/^```(?:json)?|```$/g, "").trim();
+    const t = (j.candidates?.[0]?.content?.parts || []).map((x: { text?: string }) => x.text || "").join("").replace(/^```(?:json)?|```$/g, "").trim();
     return out({ result: JSON.parse(t) });
+    // ===== END GEMINI =====
+
+    // ===== CLAUDE (kept for later; to use it, comment out the GEMINI block above and uncomment this) =====
+    // const r = await fetch("https://api.anthropic.com/v1/messages", {
+    //   method: "POST",
+    //   headers: { "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    //   body: JSON.stringify({ model: "claude-sonnet-5-5", max_tokens: 8000, system: SYS, messages: [{ role: "user", content: brief }] }),
+    // });
+    // const j = await r.json();
+    // if (!r.ok) return out({ error: j?.error?.message || "AI request failed." });
+    // const t = (j.content || []).map((x: { text?: string }) => x.text || "").join("").replace(/^```(?:json)?|```$/g, "").trim();
+    // return out({ result: JSON.parse(t) });
+    // ===== END CLAUDE =====
   } catch (e) { return out({ error: "Could not build the strategy. Try again." }); }
 });
