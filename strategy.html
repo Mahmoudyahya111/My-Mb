@@ -12,6 +12,7 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--card);
 input,select,textarea,button{font:inherit;width:100%;border-radius:8px;border:1px solid var(--line);padding:9px 11px;background:var(--bg);color:var(--fg)}
 button{cursor:pointer;background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700;width:auto;padding:10px 20px}button:disabled{opacity:.6}
 .m{color:var(--mut)}
+.pbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:10px}.pbar i{display:block;height:100%;width:35%;background:linear-gradient(90deg,var(--ac),var(--hot));animation:pb 1.2s ease-in-out infinite}@keyframes pb{0%{margin-inline-start:-35%}100%{margin-inline-start:100%}}@media(prefers-reduced-motion:reduce){.pbar i{animation:none;width:100%}}
 .cover{background:linear-gradient(160deg,#0b1a2b,#123650);color:#fff;border-radius:14px;padding:40px 28px;margin:18px 0}
 .cover .lg{font-weight:900;font-size:28px}.cover .lg i{display:inline-block;width:16px;height:16px;border-radius:50%;background:#f2b04a;box-shadow:0 0 0 5px #3cc2cd;margin-inline-end:12px}
 .cover h2{font-size:34px;margin:30px 0 6px;color:#fff}.cover p{margin:0;opacity:.85}
@@ -36,7 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}th,td{bord
 <div><label>Main goal</label><select id="goal"><option>Sales</option><option>Leads / enquiries</option><option>WhatsApp messages</option><option>Brand awareness</option></select></div>
 <div><label>Report language</label><select id="lang"><option value="en">English</option><option value="ar">Egyptian Arabic</option></select></div>
 <div class="f"><label>Anything else the strategy should know (optional)</label><textarea id="nt" rows="2"></textarea></div>
-<div class="f"><button id="go" type="submit">Generate strategy</button> <span id="st" class="m"></span></div>
+<div class="f"><button id="go" type="submit">Generate strategy</button> <span id="st" class="m"></span><div id="pg" hidden aria-live="polite"><div class="pbar"><i></i></div><p id="pt" class="m" style="margin:6px 0 0"></p></div></div>
 </form>
 <div id="rep"></div>
 <p class="noprint"><button id="pdf" hidden>Download PDF</button> <span id="pm" class="m"></span></p>
@@ -50,11 +51,15 @@ function A(x){return Array.isArray(x)?x:[]}
 function deny(m){$("gate").textContent=m;$("gate").insertAdjacentHTML("beforeend",' <a href="admin.html">Go to admin sign in</a>')}
 if(!C.url||!C.key)deny("Missing Supabase settings in config.js.");
 else{sb=supabase.createClient(C.url,C.key);sb.auth.getSession().then(function(r){if(!r.data.session)return deny("Please sign in on the admin page first.");sb.rpc("is_admin").then(function(x){if(x.data===true){$("gate").hidden=true;$("app").hidden=false}else deny("This account has no admin access.")})})}
+var tmr=null;
+function prog(on){clearInterval(tmr);$("pg").hidden=!on;if(!on)return;var t0=Date.now();
+ function tick(){var s=Math.floor((Date.now()-t0)/1000),m=s<3?"Step 1 of 3: sending your brief...":s<8?"Step 2 of 3: checking your admin access...":s<90?"Step 3 of 3: waiting for Gemini to write the strategy. This usually takes 20 to 60 seconds.":s<150?"Still waiting for Gemini. It is slower than usual but may still finish.":"This is taking too long and has probably failed. Check the function logs in Supabase.";$("pt").textContent=m+" ("+s+"s, steps are estimated)"}
+ tick();tmr=setInterval(tick,1000)}
 $("fm").onsubmit=function(e){e.preventDefault();var b={business:$("biz").value,products:$("prod").value,market:$("mkt").value,budget:$("bud").value,goal:$("goal").value,lang:$("lang").value,notes:$("nt").value};
- $("go").disabled=true;$("st").textContent="Building your strategy. This can take up to a minute...";$("pdf").hidden=true;
- sb.functions.invoke("strategy",{body:b}).then(function(r){$("go").disabled=false;
+ $("go").disabled=true;$("st").textContent="";prog(true);$("pdf").hidden=true;
+ sb.functions.invoke("strategy",{body:b}).then(function(r){$("go").disabled=false;prog(false);
   if(r.error||!r.data||r.data.error){$("st").textContent=(r.data&&r.data.error)||"The strategy service is not available yet. Check the setup steps.";return}
-  $("st").textContent="Done.";draw(r.data.result,b);$("pdf").hidden=false;$("pdf").dataset.n=b.business})};
+  $("st").textContent="Done.";draw(r.data.result,b);$("pdf").hidden=false;$("pdf").dataset.n=b.business}).catch(function(){prog(false);$("go").disabled=false;$("st").textContent="Network problem. Check your connection and try again."})};
 function T(h,rows){return'<table><tr>'+h.map(function(x){return"<th>"+x+"</th>"}).join("")+"</tr>"+rows.map(function(r){return"<tr>"+r.map(function(c){return"<td>"+E(c)+"</td>"}).join("")+"</tr>"}).join("")+"</table>"}
 function S(n,t,body){return'<div class="sec"><h3><span>'+n+"</span>"+t+"</h3>"+body+"</div>"}
 function IT(a){return A(a).map(function(x){return'<div class="it"><b>'+E(x.platform)+" · "+E(x.format)+"</b><br>"+E(x.idea)+'<br><span class="note">'+E(x.why)+"</span></div>"}).join("")}
