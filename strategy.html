@@ -31,14 +31,16 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}th,td{bord
 <div id="app" hidden>
 <form id="fm" class="noprint">
 <div class="f"><label>Type of business</label><input id="biz" required placeholder="e.g. Home furniture brand, dental clinic, online clothing store"></div>
+ <div class="f"><label>Website / social links (optional)</label><input id="web" placeholder="https://..."></div>
 <div class="f"><label>Products or services to sell</label><textarea id="prod" rows="3" required placeholder="List what you sell, with prices if you like"></textarea></div>
 <div><label>Market / location</label><input id="mkt" value="Egypt"></div>
 <div><label>Monthly ad budget (EGP, optional)</label><input id="bud" type="number"></div>
 <div><label>Main goal</label><select id="goal"><option>Sales</option><option>Leads / enquiries</option><option>WhatsApp messages</option><option>Brand awareness</option></select></div>
 <div><label>Report language</label><select id="lang"><option value="en">English</option><option value="ar">Egyptian Arabic</option></select></div>
 <div class="f"><label>Anything else the strategy should know (optional)</label><textarea id="nt" rows="2"></textarea></div>
-<div class="f"><button id="go" type="submit">Generate strategy</button> <span id="st" class="m"></span><div id="pg" hidden aria-live="polite"><div class="pbar"><i></i></div><p id="pt" class="m" style="margin:6px 0 0"></p></div></div>
+<div class="f"><button id="go" type="submit">Generate strategy</button> <button id="cp" type="button">Copy AI prompt</button> <span id="st" class="m"></span><div id="pg" hidden aria-live="polite"><div class="pbar"><i></i></div><p id="pt" class="m" style="margin:6px 0 0"></p></div></div>
 </form>
+ <textarea id="pr" rows="14" class="noprint" hidden readonly></textarea>
 <div id="rep"></div>
 <p class="noprint"><button id="pdf" hidden>Download PDF</button> <span id="pm" class="m"></span></p>
 </div></div>
@@ -77,4 +79,54 @@ function draw(d,b){var ar=b.lang==="ar",K=d.keywords||{},W=d.website_copy||{};$(
  h+=S(8,L.n,"<ol>"+A(d.next_steps).map(function(x){return"<li>"+E(x)+"</li>"}).join("")+'</ol><p class="note">'+L.dis+"</p>");
  $("rep").innerHTML=h}
 $("pdf").onclick=function(){document.title=($("pdf").dataset.n||"Strategy")+" - Strategy";$("pm").textContent="In the print window, choose Save as PDF.";window.print()};
+ $("cp").onclick=function(){
+ var v=function(i){return $(i).value.trim()||"Not provided"},ar=$("lang").value==="ar";
+ var p=`ROLE
+You are a senior performance marketer and social media strategist with 15+ years running organic and paid growth for e-commerce, services and local businesses in Egypt and MENA. You are practical, data-driven and specific. No generic advice.
+
+CLIENT DETAILS
+- Type of business: ${v("biz")}
+- Products / services (and prices): ${v("prod")}
+- Website / social links: ${v("web")}
+- Market & location: ${v("mkt")}
+- Monthly paid budget (EGP): ${v("bud")} (if not provided, recommend a realistic minimum and a split)
+- Main goal: ${v("goal")}
+- Extra notes: ${v("nt")}
+- Output language: ${ar?"Egyptian Arabic for all strategy text, captions, ad copy and emails. Keep platform names, KPI abbreviations and AI video prompts in English.":"English, but write captions and ad copy in the language the customers speak."}
+
+BEFORE WRITING
+1. If a website is given, analyse it: offer, pricing, USPs, tone, weaknesses, trust signals, conversion blockers.
+2. State your assumptions and list any critical missing info (max 5 questions), then continue with best assumptions anyway.
+3. Brief brand/market analysis: audience segments, pain points, buying triggers, objections, positioning, 3 content pillars, brand voice.
+
+PART 1: ORGANIC STRATEGY
+Produce a SEPARATE, complete section for each of: Facebook, Instagram, TikTok, Twitter/X, Email Marketing. For each include:
+a) Role of the platform for this business and the 90-day goal.
+b) Posting schedule: posts per week by format, best days and times (Cairo time), and a sample 4-week calendar table (day, format, pillar, topic, CTA).
+c) What to post: content pillars, formats, content mix %, 10 specific post ideas with hooks.
+d) Copywriting: 5 ready-to-use captions/posts (hook, body, CTA, hashtags), plus hook formulas and CTA examples. For email: subject lines, preview text, and full copy for a welcome sequence (3-5 emails), lead/cart follow-up, promo, and re-engagement.
+e) Creatives: exact creative brief per post type (visual concept, layout, text on image, colours, sizes/aspect ratios, what to avoid).
+f) Video prompts (2 per platform): Prompt A = ready-to-paste prompt for an AI video generator (Veo, Runway, Kling, Sora) showing the products/services: scene, camera movement, lighting, style, duration, aspect ratio, on-screen text, audio. Prompt B = real phone-shoot filming brief: shot list, angles, props, location, script/voice-over, length, editing notes, trending format.
+g) What good looks like: KPIs with benchmark ranges (reach, engagement rate, CTR, follower growth, email open/click rates), how to measure them, and what to do if below benchmark.
+
+PART 2: PAID STRATEGY
+Separate, complete section for Facebook, Instagram, TikTok, Twitter/X, and Email (paid lead-gen/list building plus automation flows). Include the SAME items a-g adapted for ads, plus:
+- Budget split across platforms and funnel stages (TOFU/MOFU/BOFU) in EGP, with daily budgets.
+- Campaign structure: objectives, ad sets, audiences (interests, lookalikes, retargeting), placements, bidding.
+- Launch schedule and weekly testing calendar.
+- Ad copy: 5+ variations per platform (primary text, headline, description, CTA).
+- Ad creative briefs (static, carousel, video), first-3-second hooks, UGC angles, offers.
+- Tracking setup: pixel/events, UTM, WhatsApp/lead tracking.
+- KPIs & benchmarks (CPM, CTR, CPC, CPA/CPL, ROAS, frequency), scaling rules, kill rules, optimisation steps for weeks 1-4.
+
+FINAL SECTIONS
+- 30/60/90-day action plan. Top 10 quick wins this week. Risks, common mistakes for this niche, ad-policy/compliance notes. A one-page client summary.
+
+RULES
+- Specific to this business, no filler. Tables for schedules, budgets, KPIs.
+- Give ready-to-use copy and prompts, not descriptions of them.
+- Realistic Egypt/MENA benchmarks, labelled as estimates.
+- If too long for one reply, deliver one platform per message in order and continue when I say "next".`;
+ $("pr").value=p;$("pr").hidden=false;
+ (navigator.clipboard?navigator.clipboard.writeText(p):Promise.reject()).then(function(){$("st").textContent="Prompt copied. Paste it into ChatGPT, Gemini or Claude."}).catch(function(){$("pr").select();$("st").textContent="Select the text below and copy it."})};
 </script></body></html>
